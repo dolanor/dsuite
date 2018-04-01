@@ -1,6 +1,17 @@
 # DSuite
 
-Like your GSuite, but on Docker.
+Like your GSuite :envelope: :calendar: :file_folder: + :octocat: + CI, but on Docker :whale:
+
+This contains work from these projects:
+
+* [tomav/docker-mailserver](https://github.com/tomav/docker-mailserver)
+* [mholt/caddy](https://github.com/mholt/caddy)
+* [osixia/docker-openldap](https://github.com/osixia/docker-openldap)
+* [osixia/docker-phpLDAPadmin](https://github.com/osixia/docker-phpLDAPadmin)
+* [docker/distribution](https://github.com/docker/distribution/)
+* [go-gitea/gitea](https://github.com/go-gitea/gitea)
+* [drone/drone](https://github.com/drone/drone)
+* [nextcloud/server](https://github.com/nextcloud/server)
 
 # Installation
 

@@ -1,0 +1,44 @@
+registry.mydomain.com {
+    tls me@mydomain.com
+    proxy / registry:5000 {
+        transparent
+    }
+}
+
+ldapadmin.mydomain.com {
+    tls me@mydomain.com
+    proxy / https://ldapadmin:443 {
+        transparent
+        insecure_skip_verify
+    }
+}
+
+cloud.mydomain.com {
+    tls me@mydomain.com
+    proxy / nextcloud:80 {
+        transparent
+    }
+}
+
+mail.mydomain.com {
+    tls me@mydomain.com
+}
+
+code.mydomain.com {
+    tls me@mydomain.com
+    proxy / code:3000 {
+        transparent
+    }
+
+    mime .svg image/svg+xml
+}
+
+drone.mydomain.com {
+    tls me@mydomain.com
+    proxy / drone:8000 {
+        websocket
+        transparent
+    }
+
+    mime .svg image/svg+xml
+}

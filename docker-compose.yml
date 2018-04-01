@@ -1,0 +1,175 @@
+version: "2"
+
+services:
+  proxy:
+    image: abiosoft/caddy:0.10.11
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ${HOME}/.caddy:/root/.caddy
+      - ./proxy/Caddyfile:/etc/Caddyfile
+    networks:
+      - front
+    restart: always
+
+  code:
+    image: gitea/gitea:1.4
+    ports:
+      - "22:22"
+    volumes:
+      - "./code/volumes/data:/data"
+    networks:
+      - front
+    restart: always
+
+  registry:
+    image: registry:2
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    volumes:
+      - "./registry/volumes/data:/var/lib/registry"
+    networks:
+      - front
+    restart: always
+
+  drone:
+    image: drone/drone:0.8.4
+    environment:
+      DRONE_HOST: "https://drone.mydomain.com"
+      DRONE_OPEN: "true"
+      DRONE_ADMIN: admin
+      DRONE_AGENT_SECRET: BigSecret
+      DRONE_GITEA: "true"
+      DRONE_GITEA_URL: https://code.mydomain.com
+    volumes:
+      - "./drone/volumes:/var/lib/drone"
+    networks:
+      - front
+      - drone
+    restart: always
+
+  drone-agent:
+    image: drone/agent:0.8.4
+    command: agent
+    environment:
+      DRONE_SECRET: BigSecret
+      DRONE_SERVER: drone:9000
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - drone
+    restart: always
+
+  ldap:
+    image: osixia/openldap:1.1.11
+    environment:
+      LDAP_ORGANIZATION: Multiverse
+      LDAP_DOMAIN: multiverse
+      LDAP_ADMIN_PASSWORD: MyLDAPPassword
+      LDAP_CONFIG_PASSWORD: MyLDAPConfigPassword
+    volumes:
+      - "./ldap/volumes/etc:/etc/ldap/slapd.d"
+      - "./ldap/volumes/data:/var/lib/ldap"
+    networks:
+      - front
+    restart: always
+
+  ldapadmin:
+    image: osixia/phpldapadmin:0.7.1
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: ldap
+      PHPLDAPADMIN_SERVER_ADMIN: me@mydomain.com
+    depends_on:
+      - ldap
+    networks:
+      - front
+    restart: always
+
+  nextcloud:
+    image: nextcloud:13-apache
+    environment:
+      NEXTCLOUD_ADMIN_USER: localadmin
+      NEXTCLOUD_ADMIN_PASSWORD: NextCloud is dope ! 987@
+    depends_on:
+      - nextcloud-db
+    links:
+      - nextcloud-db:db
+    volumes:
+      - "./nextcloud/app:/var/www/html"
+    networks:
+      - front
+      - nextcloud
+    restart: always
+
+  nextcloud-db:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: MyMysqlRootPassword
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: MyMysqlPassword
+    volumes:
+      - "./nextcloud/db:/var/lib/mysql"
+    networks:
+      - nextcloud
+    restart: always
+
+  mail:
+    image: tvial/docker-mailserver:testing
+    hostname: mail
+    domainname: mydomain.com
+    container_name: mail
+    ports:
+      - "25:25"
+      - "587:587"
+      - "465:465"
+      - "143:143"
+      - "993:993"
+    volumes:
+      - ./mail/volumes/data:/var/mail
+      - ./mail/volumes/state:/var/mail-state
+      - ./mail/config/:/tmp/docker-mailserver/
+      - ${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/fullchain.pem
+      - ${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/cert.pem
+      - ${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.key:/etc/letsencrypt/live/mail.mydomain.com/privkey.pem
+    environment:
+      ENABLE_SPAMASSASSIN: 1
+      ENABLE_CLAMAV: 1
+      ENABLE_FAIL2BAN: 1
+      ENABLE_POSTGREY: 1
+      ENABLE_SASLAUTHD: 1
+      ENABLE_LDAP: 1
+      SSL_TYPE: letsencrypt
+      ONE_DIR: 1
+      DMS_DEBUG: 1
+      LDAP_SERVER_HOST: ldap
+      LDAP_SEARCH_BASE: ou=people,dc=multiverse
+      LDAP_BIND_DN: cn=mailacct,ou=apps,dc=mydomain,dc=com,dc=multiverse
+      LDAP_BIND_PW: MyMailAcctBindPassword
+      LDAP_QUERY_FILTER_USER: "(&(mail=%s)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
+      LDAP_QUERY_FILTER_GROUP: "(&(mailGroupMember=%s)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
+      LDAP_QUERY_FILTER_ALIAS: "(&(mailAlias=%s)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
+      LDAP_QUERY_FILTER_DOMAIN: "(&(|(mail=*@%s)(mailalias=*@%s))(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
+      DOVECOT_PASS_FILTER:  "(&(objectClass=inetOrgPerson)(mail=%u)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
+      DOVECOT_USER_FILTER: "(&(objectClass=inetOrgPerson)(mail=%u)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
+      DOVECOT_USER_ATTRS: "homeDirectory=home"
+      SASLAUTHD_MECHANISMS: ldap
+      SASLAUTHD_LDAP_SERVER: ldap
+      SASLAUTHD_LDAP_SEARCH_BASE: ou=people,dc=multiverse
+      SASLAUTHD_LDAP_BIND_DN: cn=mailacct,ou=apps,dc=mydomain,dc=com,dc=multiverse
+      SASLAUTHD_LDAP_PASSWORD: MyMailAcctBindPassword
+      SASLAUTHD_LDAP_FILTER: "(&(objectClass=inetOrgPerson)(mail=%u)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
+      POSTMASTER_ADDRESS: postmaster@mydomain.com
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    networks:
+      - front
+    restart: always
+
+networks:
+  front:
+    driver: bridge
+  nextcloud:
+  drone:

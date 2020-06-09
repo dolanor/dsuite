@@ -19,7 +19,7 @@ services:
     ports:
       - "22:22"
     volumes:
-      - "./code/volumes/data:/data"
+      - "code-data:/data"
     networks:
       - front
     restart: always
@@ -29,7 +29,7 @@ services:
     environment:
       REGISTRY_STORAGE_DELETE_ENABLED: "true"
     volumes:
-      - "./registry/volumes/data:/var/lib/registry"
+      - "registry-data:/var/lib/registry"
     networks:
       - front
     restart: always
@@ -44,7 +44,7 @@ services:
       DRONE_GITEA:        ${DRONE_GITEA}
       DRONE_GITEA_URL:    ${DRONE_GITEA_URL}
     volumes:
-      - "./drone/volumes:/var/lib/drone"
+      - "drone-data:/var/lib/drone"
     networks:
       - front
       - drone
@@ -70,8 +70,8 @@ services:
       LDAP_ADMIN_PASSWORD:  ${LDAP_ADMIN_PASSWORD}
       LDAP_CONFIG_PASSWORD: ${LDAP_CONFIG_PASSWORD}
     volumes:
-      - "./ldap/volumes/etc:/etc/ldap/slapd.d"
-      - "./ldap/volumes/data:/var/lib/ldap"
+      - "ldap-config:/etc/ldap/slapd.d"
+      - "ldap-data:/var/lib/ldap"
     networks:
       - front
     restart: always
@@ -97,7 +97,7 @@ services:
     links:
       - nextcloud-db:db
     volumes:
-      - "./nextcloud/app:/var/www/html"
+      - "nextcloud-data:/var/www/html"
     networks:
       - front
       - nextcloud
@@ -111,7 +111,7 @@ services:
       MYSQL_USER:          ${MYSQL_USER}
       MYSQL_PASSWORD:      ${MYSQL_PASSWORD}
     volumes:
-      - "./nextcloud/db:/var/lib/mysql"
+      - "nextcloud-db-data:/var/lib/mysql"
     networks:
       - nextcloud
     restart: always
@@ -128,12 +128,12 @@ services:
       - "143:143"
       - "993:993"
     volumes:
-      - ./mail/volumes/data:/var/mail
-      - ./mail/volumes/state:/var/mail-state
-      - ./mail/config/:/tmp/docker-mailserver/
-      - ${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/fullchain.pem
-      - ${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/cert.pem
-      - ${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.key:/etc/letsencrypt/live/mail.mydomain.com/privkey.pem
+      - "mail-data:/var/mail"
+      - "mail-state:/var/mail-state"
+      - "./mail/config/:/tmp/docker-mailserver/"
+      - "${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/fullchain.pem"
+      - "${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/cert.pem"
+      - "${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.key:/etc/letsencrypt/live/mail.mydomain.com/privkey.pem"
     environment:
       ENABLE_SPAMASSASSIN:        ${ENABLE_SPAMASSASSIN}
       ENABLE_CLAMAV:              ${ENABLE_CLAMAV}
@@ -174,3 +174,14 @@ networks:
     driver: bridge
   nextcloud:
   drone:
+
+volumes:
+  code-data:
+  registry-data:
+  drone-data:
+  mail-data:
+  mail-state:
+  nextcloud-data:
+  nextcloud-db-data:
+  ldap-data:
+  ldap-config:

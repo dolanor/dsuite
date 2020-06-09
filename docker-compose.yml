@@ -2,7 +2,7 @@ version: "2"
 
 services:
   proxy:
-    image: abiosoft/caddy:0.10.11
+    image: abiosoft/caddy:1.0.0
     ports:
       - "443:443"
       - "80:80"
@@ -11,6 +11,7 @@ services:
       - ./proxy/Caddyfile:/etc/Caddyfile
     networks:
       - front
+    command: -log stdout -conf=/etc/Caddyfile -agree
     restart: always
 
   code:
@@ -36,12 +37,12 @@ services:
   drone:
     image: drone/drone:0.8.4
     environment:
-      DRONE_HOST: "https://drone.mydomain.com"
-      DRONE_OPEN: "true"
-      DRONE_ADMIN: admin
-      DRONE_AGENT_SECRET: BigSecret
-      DRONE_GITEA: "true"
-      DRONE_GITEA_URL: https://code.mydomain.com
+      DRONE_HOST:         ${DRONE_HOST}
+      DRONE_OPEN:         ${DRONE_OPEN}
+      DRONE_ADMIN:        ${DRONE_ADMIN}
+      DRONE_AGENT_SECRET: ${DRONE_AGENT_SECRET}
+      DRONE_GITEA:        ${DRONE_GITEA}
+      DRONE_GITEA_URL:    ${DRONE_GITEA_URL}
     volumes:
       - "./drone/volumes:/var/lib/drone"
     networks:
@@ -53,8 +54,8 @@ services:
     image: drone/agent:0.8.4
     command: agent
     environment:
-      DRONE_SECRET: BigSecret
-      DRONE_SERVER: drone:9000
+      DRONE_SECRET: ${DRONE_SECRET}
+      DRONE_SERVER: ${DRONE_SERVER}
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
@@ -64,10 +65,10 @@ services:
   ldap:
     image: osixia/openldap:1.1.11
     environment:
-      LDAP_ORGANIZATION: Multiverse
-      LDAP_DOMAIN: multiverse
-      LDAP_ADMIN_PASSWORD: MyLDAPPassword
-      LDAP_CONFIG_PASSWORD: MyLDAPConfigPassword
+      LDAP_ORGANIZATION:    ${LDAP_ORGANIZATION}
+      LDAP_DOMAIN:          ${LDAP_DOMAIN}
+      LDAP_ADMIN_PASSWORD:  ${LDAP_ADMIN_PASSWORD}
+      LDAP_CONFIG_PASSWORD: ${LDAP_CONFIG_PASSWORD}
     volumes:
       - "./ldap/volumes/etc:/etc/ldap/slapd.d"
       - "./ldap/volumes/data:/var/lib/ldap"
@@ -78,8 +79,8 @@ services:
   ldapadmin:
     image: osixia/phpldapadmin:0.7.1
     environment:
-      PHPLDAPADMIN_LDAP_HOSTS: ldap
-      PHPLDAPADMIN_SERVER_ADMIN: me@mydomain.com
+      PHPLDAPADMIN_LDAP_HOSTS:   ${PHPLDAPADMIN_LDAP_HOSTS}
+      PHPLDAPADMIN_SERVER_ADMIN: ${PHPLDAPADMIN_SERVER_ADMIN}
     depends_on:
       - ldap
     networks:
@@ -89,8 +90,8 @@ services:
   nextcloud:
     image: nextcloud:13-apache
     environment:
-      NEXTCLOUD_ADMIN_USER: localadmin
-      NEXTCLOUD_ADMIN_PASSWORD: NextCloud is dope ! 987@
+      NEXTCLOUD_ADMIN_USER:     ${NEXTCLOUD_ADMIN_USER}
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
     depends_on:
       - nextcloud-db
     links:
@@ -105,10 +106,10 @@ services:
   nextcloud-db:
     image: mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: MyMysqlRootPassword
-      MYSQL_DATABASE: nextcloud
-      MYSQL_USER: nextcloud
-      MYSQL_PASSWORD: MyMysqlPassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE:      ${MYSQL_DATABASE}
+      MYSQL_USER:          ${MYSQL_USER}
+      MYSQL_PASSWORD:      ${MYSQL_PASSWORD}
     volumes:
       - "./nextcloud/db:/var/lib/mysql"
     networks:
@@ -134,33 +135,33 @@ services:
       - ${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/cert.pem
       - ${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.key:/etc/letsencrypt/live/mail.mydomain.com/privkey.pem
     environment:
-      ENABLE_SPAMASSASSIN: 1
-      ENABLE_CLAMAV: 1
-      ENABLE_FAIL2BAN: 1
-      ENABLE_POSTGREY: 1
-      ENABLE_SASLAUTHD: 1
-      ENABLE_LDAP: 1
-      SSL_TYPE: letsencrypt
-      ONE_DIR: 1
-      DMS_DEBUG: 1
-      LDAP_SERVER_HOST: ldap
-      LDAP_SEARCH_BASE: ou=people,dc=multiverse
-      LDAP_BIND_DN: cn=mailacct,ou=apps,dc=mydomain,dc=com,dc=multiverse
-      LDAP_BIND_PW: MyMailAcctBindPassword
-      LDAP_QUERY_FILTER_USER: "(&(mail=%s)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
-      LDAP_QUERY_FILTER_GROUP: "(&(mailGroupMember=%s)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
-      LDAP_QUERY_FILTER_ALIAS: "(&(mailAlias=%s)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
-      LDAP_QUERY_FILTER_DOMAIN: "(&(|(mail=*@%s)(mailalias=*@%s))(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
-      DOVECOT_PASS_FILTER:  "(&(objectClass=inetOrgPerson)(mail=%u)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
-      DOVECOT_USER_FILTER: "(&(objectClass=inetOrgPerson)(mail=%u)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
-      DOVECOT_USER_ATTRS: "homeDirectory=home"
-      SASLAUTHD_MECHANISMS: ldap
-      SASLAUTHD_LDAP_SERVER: ldap
-      SASLAUTHD_LDAP_SEARCH_BASE: ou=people,dc=multiverse
-      SASLAUTHD_LDAP_BIND_DN: cn=mailacct,ou=apps,dc=mydomain,dc=com,dc=multiverse
-      SASLAUTHD_LDAP_PASSWORD: MyMailAcctBindPassword
-      SASLAUTHD_LDAP_FILTER: "(&(objectClass=inetOrgPerson)(mail=%u)(memberof=cn=mail,ou=apps,dc=mydomain,dc=com,dc=multiverse))"
-      POSTMASTER_ADDRESS: postmaster@mydomain.com
+      ENABLE_SPAMASSASSIN:        ${ENABLE_SPAMASSASSIN}
+      ENABLE_CLAMAV:              ${ENABLE_CLAMAV}
+      ENABLE_FAIL2BAN:            ${ENABLE_FAIL2BAN}
+      ENABLE_POSTGREY:            ${ENABLE_POSTGREY}
+      ENABLE_SASLAUTHD:           ${ENABLE_SASLAUTHD}
+      ENABLE_LDAP:                ${ENABLE_LDAP}
+      SSL_TYPE:                   ${SSL_TYPE}
+      ONE_DIR:                    ${ONE_DIR}
+      DMS_DEBUG:                  ${DMS_DEBUG}
+      LDAP_SERVER_HOST:           ${LDAP_SERVER_HOST}
+      LDAP_SEARCH_BASE:           ${LDAP_SEARCH_BASE}
+      LDAP_BIND_DN:               ${LDAP_BIND_DN}
+      LDAP_BIND_PW:               ${LDAP_BIND_PW}
+      LDAP_QUERY_FILTER_USER:     ${LDAP_QUERY_FILTER_USER}
+      LDAP_QUERY_FILTER_GROUP:    ${LDAP_QUERY_FILTER_GROUP}
+      LDAP_QUERY_FILTER_ALIAS:    ${LDAP_QUERY_FILTER_ALIAS}
+      LDAP_QUERY_FILTER_DOMAIN:   ${LDAP_QUERY_FILTER_DOMAIN}
+      DOVECOT_PASS_FILTER:        ${DOVECOT_PASS_FILTER}
+      DOVECOT_USER_FILTER:        ${DOVECOT_USER_FILTER}
+      DOVECOT_USER_ATTRS:         ${DOVECOT_USER_ATTRS}
+      SASLAUTHD_MECHANISMS:       ${SASLAUTHD_MECHANISMS}
+      SASLAUTHD_LDAP_SERVER:      ${SASLAUTHD_LDAP_SERVER}
+      SASLAUTHD_LDAP_SEARCH_BASE: ${SASLAUTHD_LDAP_SEARCH_BASE}
+      SASLAUTHD_LDAP_BIND_DN:     ${SASLAUTHD_LDAP_BIND_DN}
+      SASLAUTHD_LDAP_PASSWORD:    ${SASLAUTHD_LDAP_PASSWORD}
+      SASLAUTHD_LDAP_FILTER:      ${SASLAUTHD_LDAP_FILTER}
+      POSTMASTER_ADDRESS:         ${POSTMASTER_ADDRESS}
     cap_add:
       - NET_ADMIN
       - SYS_PTRACE

@@ -15,7 +15,7 @@ services:
     restart: always
 
   code:
-    image: gitea/gitea:1.4
+    image: gitea/gitea:1.6
     ports:
       - "22:22"
     volumes:
@@ -88,7 +88,7 @@ services:
     restart: always
 
   nextcloud:
-    image: nextcloud:13-apache
+    image: nextcloud:15-apache
     environment:
       NEXTCLOUD_ADMIN_USER:     ${NEXTCLOUD_ADMIN_USER}
       NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}

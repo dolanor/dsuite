@@ -117,7 +117,7 @@ services:
     restart: always
 
   mail:
-    image: tvial/docker-mailserver:testing
+    image: tvial/docker-mailserver:stable
     hostname: mail
     domainname: mydomain.com
     container_name: mail

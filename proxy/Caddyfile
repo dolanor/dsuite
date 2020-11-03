@@ -37,7 +37,7 @@ code.mydomain.com {
 
 drone.mydomain.com {
     tls me@mydomain.com
-    proxy / drone:8000 {
+    proxy / drone:80 {
         websocket
         transparent
     }

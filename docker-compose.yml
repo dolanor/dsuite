@@ -76,7 +76,7 @@ services:
     restart: always
 
   ldap:
-    image: osixia/openldap:1.1.11
+    image: osixia/openldap:1.4
     environment:
       LDAP_ORGANIZATION:    ${LDAP_ORGANIZATION}
       LDAP_DOMAIN:          ${LDAP_DOMAIN}
@@ -90,7 +90,7 @@ services:
     restart: always
 
   ldapadmin:
-    image: osixia/phpldapadmin:0.7.1
+    image: osixia/phpldapadmin:0.9
     environment:
       PHPLDAPADMIN_LDAP_HOSTS:   ${PHPLDAPADMIN_LDAP_HOSTS}
       PHPLDAPADMIN_SERVER_ADMIN: ${PHPLDAPADMIN_SERVER_ADMIN}
@@ -101,7 +101,7 @@ services:
     restart: always
 
   nextcloud:
-    image: nextcloud:15-apache
+    image: nextcloud:20-apache
     environment:
       NEXTCLOUD_ADMIN_USER:     ${NEXTCLOUD_ADMIN_USER}
       NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}

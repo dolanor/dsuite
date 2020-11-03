@@ -15,7 +15,7 @@ services:
     restart: always
 
   code:
-    image: gitea/gitea:1.6
+    image: gitea/gitea:1.12
     ports:
       - "22:22"
     volumes:
@@ -35,7 +35,7 @@ services:
     restart: always
 
   drone:
-    image: drone/drone:0.8.4
+    image: drone/drone:1.8
     environment:
       DRONE_HOST:         ${DRONE_HOST}
       DRONE_OPEN:         ${DRONE_OPEN}
@@ -43,6 +43,15 @@ services:
       DRONE_AGENT_SECRET: ${DRONE_AGENT_SECRET}
       DRONE_GITEA:        ${DRONE_GITEA}
       DRONE_GITEA_URL:    ${DRONE_GITEA_URL}
+
+      DRONE_RPC_SECRET:          ${DRONE_RPC_SECRET}
+      DRONE_SERVER_HOST:         ${DRONE_SERVER_HOST}
+      DRONE_SERVER_PROTO:        ${DRONE_SERVER_PROTO}
+
+      DRONE_GITEA_SERVER:        ${DRONE_GITEA_SERVER}
+      DRONE_GITEA_CLIENT_ID:     ${DRONE_GITEA_CLIENT_ID}
+      DRONE_GITEA_CLIENT_SECRET: ${DRONE_GITEA_CLIENT_SECRET}
+
     volumes:
       - "drone-data:/var/lib/drone"
     networks:
@@ -50,12 +59,16 @@ services:
       - drone
     restart: always
 
-  drone-agent:
-    image: drone/agent:0.8.4
-    command: agent
+  drone-runner:
+    image: drone/drone-runner-docker:1
     environment:
-      DRONE_SECRET: ${DRONE_SECRET}
-      DRONE_SERVER: ${DRONE_SERVER}
+      DRONE_RPC_SECRET: ${DRONE_RPC_SECRET}
+      DRONE_RPC_HOST:   ${DRONE_SERVER_HOST}
+      DRONE_RPC_PROTO:  ${DRONE_SERVER_PROTO}
+
+      DRONE_RUNNER_CAPACITY: ${DRONE_RUNNER_CAPACITY}
+      DRONE_RUNNER_NAME:     ${DRONE_RUNNER_NAME}
+
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:

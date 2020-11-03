@@ -144,9 +144,9 @@ services:
       - "mail-data:/var/mail"
       - "mail-state:/var/mail-state"
       - "./mail/config/:/tmp/docker-mailserver/"
-      - "${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/fullchain.pem"
-      - "${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/cert.pem"
-      - "${HOME}/.caddy/acme/acme-v01.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.key:/etc/letsencrypt/live/mail.mydomain.com/privkey.pem"
+      - "${HOME}/.caddy/acme/acme-v02.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/fullchain.pem"
+      - "${HOME}/.caddy/acme/acme-v02.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.crt:/etc/letsencrypt/live/mail.mydomain.com/cert.pem"
+      - "${HOME}/.caddy/acme/acme-v02.api.letsencrypt.com/sites/mail.mydomain.com/mail.mydomain.com.key:/etc/letsencrypt/live/mail.mydomain.com/privkey.pem"
     environment:
       ENABLE_SPAMASSASSIN:        ${ENABLE_SPAMASSASSIN}
       ENABLE_CLAMAV:              ${ENABLE_CLAMAV}

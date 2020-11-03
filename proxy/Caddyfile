@@ -20,8 +20,10 @@ cloud.mydomain.com {
     }
 }
 
-mail.mydomain.com {
-    tls me@mydomain.com
+mail.godev.team {
+    tls me@mydomain.com {
+        key_type rsa2048
+    }
 }
 
 code.mydomain.com {

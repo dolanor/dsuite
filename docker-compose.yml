@@ -76,7 +76,7 @@ services:
     restart: always
 
   ldap:
-    image: osixia/openldap:1.4
+    image: osixia/openldap:1.4.0
     environment:
       LDAP_ORGANIZATION:    ${LDAP_ORGANIZATION}
       LDAP_DOMAIN:          ${LDAP_DOMAIN}
@@ -90,7 +90,7 @@ services:
     restart: always
 
   ldapadmin:
-    image: osixia/phpldapadmin:0.9
+    image: osixia/phpldapadmin:0.8.0
     environment:
       PHPLDAPADMIN_LDAP_HOSTS:   ${PHPLDAPADMIN_LDAP_HOSTS}
       PHPLDAPADMIN_SERVER_ADMIN: ${PHPLDAPADMIN_SERVER_ADMIN}

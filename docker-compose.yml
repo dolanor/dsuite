@@ -1,4 +1,4 @@
-version: "2"
+version: "3.8"
 
 services:
   proxy:
@@ -182,11 +182,55 @@ services:
       - front
     restart: always
 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.38.6
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker:/var/lib/docker:ro"
+      - "/dev/disk:/dev/disk:ro"
+    devices:
+      - "/dev/kmsg"
+    expose:
+      - "8080"
+    networks:
+      - monitoring
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:v2.24.1
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+      - "prometheus-data:/prometheus"
+    expose:
+      - "9090"
+    depends_on:
+      - cadvisor
+    networks:
+      - front
+      - monitoring
+    restart: always
+
+  grafana:
+    image: grafana/grafana:7.3.7
+    volumes:
+      - "grafana-data:/var/lib/grafana"
+    expose:
+      - 3000
+    networks:
+      - monitoring
+      - front
+
 networks:
   front:
     driver: bridge
   nextcloud:
   drone:
+  monitoring:
 
 volumes:
   code-data:
@@ -198,3 +242,5 @@ volumes:
   nextcloud-db-data:
   ldap-data:
   ldap-config:
+  prometheus-data:
+  grafana-data:

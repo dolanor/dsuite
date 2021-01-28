@@ -44,3 +44,10 @@ drone.mydomain.com {
 
     mime .svg image/svg+xml
 }
+
+graf.mydomain.com {
+    tls me@mydomain.com
+    proxy / grafana:3000 {
+        transparent
+    }
+}

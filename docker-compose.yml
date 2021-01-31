@@ -129,6 +129,17 @@ services:
       - nextcloud
     restart: always
 
+  perkeep:
+    image: perkeep:v0.11-git2
+    command: perkeepd
+    volumes:
+      - "~/var:/home/keepy/var"
+      - "~/.config/perkeep:/home/keepy/.config/perkeep"
+    networks:
+      - front
+    restart: always
+
+
   mail:
     image: tvial/docker-mailserver:stable
     hostname: mail
@@ -242,5 +253,6 @@ volumes:
   nextcloud-db-data:
   ldap-data:
   ldap-config:
+  perkeep-store:
   prometheus-data:
   grafana-data:

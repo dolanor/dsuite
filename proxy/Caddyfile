@@ -51,3 +51,12 @@ graf.mydomain.com {
         transparent
     }
 }
+
+pk.mydomain.com {
+    tls me@mydomain.com
+    proxy / perkeep:3179 {
+        transparent
+        websocket
+    }
+}
+

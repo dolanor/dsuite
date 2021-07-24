@@ -235,6 +235,27 @@ services:
     networks:
       - monitoring
       - front
+  bivac:
+    image: camptocamp/bivac:2.3
+    command: manager
+    expose:
+      - "8182"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "bivac-data:/backup"
+    environment:
+      BIVAC_AGENT_IMAGE: camptocamp/bivac:2.3
+
+      RESTIC_PASSWORD:         ${RESTIC_PASSWORD}
+      BIVAC_SERVER_PSK:        ${BIVAC_SERVER_PSK}
+      BIVAC_VOLUMES_BLACKLIST: ${BIVAC_VOLUMES_BLACKLIST}
+
+      # if backing up on a dedicated volume, don't forget to set it up
+      # in the volumes section and make the URL just a direct fs URL (eg. `/backup`)
+      # if backing up to S3, set AWS env var correctly
+      BIVAC_TARGET_URL:      ${BIVAC_TARGET_URL}
+      AWS_ACCESS_KEY_ID:     ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
 
 networks:
   front:
@@ -256,3 +277,4 @@ volumes:
   perkeep-store:
   prometheus-data:
   grafana-data:
+  bivac-data:

@@ -11,11 +11,26 @@ services:
       - ./proxy/Caddyfile:/etc/Caddyfile
     networks:
       - front
+      - ffront
+    command: -log stdout -conf=/etc/Caddyfile -agree
+    restart: always
+
+  proxy-tuxago:
+    image: abiosoft/caddy:1.0.0
+    ports:
+      - "51.159.95.2:443:443"
+      - "51.159.95.2:80:80"
+    volumes:
+      - ${HOME}/.caddy:/root/.caddy
+      - ./proxy/Caddyfile.tuxago:/etc/Caddyfile
+    networks:
+      - front
+      - ffront
     command: -log stdout -conf=/etc/Caddyfile -agree
     restart: always
 
   code:
-    image: gitea/gitea:1.12
+    image: gitea/gitea:1.14
     ports:
       - "22:22"
     volumes:
@@ -126,8 +141,8 @@ services:
     image: perkeep:v0.11-git2
     command: perkeepd
     volumes:
-      - "~/var:/home/keepy/var"
-      - "~/.config/perkeep:/home/keepy/.config/perkeep"
+      - "perkeep-store:/home/keepy/var"
+      - "perkeep-config:/home/keepy/.config/perkeep"
     networks:
       - front
     restart: always
@@ -220,7 +235,7 @@ services:
     restart: always
 
   grafana:
-    image: grafana/grafana:7.3.7
+    image: grafana/grafana:8.0.6
     volumes:
       - "grafana-data:/var/lib/grafana"
     expose:
@@ -228,6 +243,7 @@ services:
     networks:
       - monitoring
       - front
+    restart: always
   bivac:
     image: camptocamp/bivac:2.3
     command: manager
@@ -268,6 +284,7 @@ volumes:
   ldap-data:
   ldap-config:
   perkeep-store:
+  perkeep-config:
   prometheus-data:
   grafana-data:
   bivac-data:

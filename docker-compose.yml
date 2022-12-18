@@ -15,20 +15,6 @@ services:
     command: -log stdout -conf=/etc/Caddyfile -agree
     restart: always
 
-  proxy-tuxago:
-    image: abiosoft/caddy:1.0.0
-    ports:
-      - "51.159.95.2:443:443"
-      - "51.159.95.2:80:80"
-    volumes:
-      - ${HOME}/.caddy:/root/.caddy
-      - ./proxy/Caddyfile.tuxago:/etc/Caddyfile
-    networks:
-      - front
-      - ffront
-    command: -log stdout -conf=/etc/Caddyfile -agree
-    restart: always
-
   code:
     image: gitea/gitea:1.14
     ports:

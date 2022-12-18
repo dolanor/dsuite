@@ -7,7 +7,7 @@ services:
       - "443:443"
       - "80:80"
     volumes:
-      - ${HOME}/.caddy:/root/.caddy
+      - caddy-data:/root/.caddy
       - ./proxy/Caddyfile:/etc/Caddyfile
     networks:
       - front
@@ -260,6 +260,7 @@ networks:
   monitoring:
 
 volumes:
+  caddy-data:
   code-data:
   registry-data:
   drone-data:

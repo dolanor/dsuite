@@ -94,6 +94,17 @@ services:
       - front
     restart: always
 
+  ldapweb:
+    image: dolanor/ldapweb:latest
+    environment:
+      LDAPWEB_HOST:                ${LDAP_SERVER_HOST}
+      LDAPWEB_PORT:                ${LDAP_SERVER_PORT}
+      LDAPWEB_BASEDN:              ${LDAP_SEARCH_BASE}
+      LDAPWEB_USERFILTER_TEMPLATE: ${LDAPWEB_USERFILTER_TEMPLATE}
+      LDAPWEB_DN_TEMPLATE:         ${LDAPWEB_DN_TEMPLATE}
+    networks:
+      - front
+      - ldap
   nextcloud:
     image: nextcloud:20-apache
     environment:
@@ -255,6 +266,7 @@ services:
 networks:
   front:
     driver: bridge
+  ldap:
   nextcloud:
   drone:
   monitoring:

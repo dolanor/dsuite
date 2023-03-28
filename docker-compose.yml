@@ -110,10 +110,13 @@ services:
     environment:
       NEXTCLOUD_ADMIN_USER:     ${NEXTCLOUD_ADMIN_USER}
       NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
+
+      MYSQL_HOST:          nextcloud-db
+      MYSQL_DATABASE:      ${MYSQL_DATABASE}
+      MYSQL_USER:          ${MYSQL_USER}
+      MYSQL_PASSWORD:      ${MYSQL_PASSWORD}
     depends_on:
       - nextcloud-db
-    links:
-      - nextcloud-db:db
     volumes:
       - "nextcloud-data:/var/www/html"
     networks:

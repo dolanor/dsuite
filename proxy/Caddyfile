@@ -60,3 +60,10 @@ pk.mydomain.com {
     }
 }
 
+id.mydomain.com {
+    tls me@mydomain.com
+    proxy / ldapweb:1111 {
+        transparent
+    }
+}
+

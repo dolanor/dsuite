@@ -206,7 +206,7 @@ services:
     restart: always
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.38.6
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
     volumes:
       - "/:/rootfs:ro"
       - "/var/run:/var/run:ro"
@@ -221,8 +221,19 @@ services:
       - monitoring
     restart: always
 
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:v1.6.0
+    command:
+      - "--path.rootfs=/host"
+    network_mode: host
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - "/:/host:ro,rslave"
+
+
   prometheus:
-    image: prom/prometheus:v2.24.1
+    image: prom/prometheus:v2.45.0
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
@@ -233,21 +244,22 @@ services:
       - "9090"
     depends_on:
       - cadvisor
+      - node_exporter
     networks:
-      - front
       - monitoring
     restart: always
 
   grafana:
-    image: grafana/grafana:8.0.6
+    image: grafana/grafana:10.0.1
     volumes:
       - "grafana-data:/var/lib/grafana"
     expose:
-      - 3000
+      - "3000"
     networks:
       - monitoring
       - front
     restart: always
+
   bivac:
     image: camptocamp/bivac:2.3
     command: manager

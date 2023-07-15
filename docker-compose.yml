@@ -1,21 +1,40 @@
 version: "3.8"
 
 services:
-  proxy:
-    image: abiosoft/caddy:1.0.0
+  traefik:
+    image: "traefik:v2.10"
+
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+        # We only look for containers in this dsuite project to avoid conflicts with
+        # another traefik instance on the same host.
+      - "--providers.docker.constraints=Label(`com.docker.compose.project`, `dsuite`)"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=th.letsencrypt.org@tuxago.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+        # use this while testing to avoid getting rate limited by the prod lets encrypt server
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+
     ports:
-      - "443:443"
       - "80:80"
+      - "443:443"
     volumes:
-      - caddy-data:/root/.caddy
-      - ./proxy/Caddyfile:/etc/Caddyfile
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
     networks:
       - front
-    command: -log stdout -conf=/etc/Caddyfile -agree
     restart: always
 
   code:
     image: gitea/gitea:1.17
+    expose:
+      - "3000"
     ports:
       - "22:22"
     volumes:
@@ -24,6 +43,15 @@ services:
       - front
       - ldap
     restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dsuite_front"
+      - "traefik.http.routers.code.entrypoints=websecure"
+      - "traefik.http.routers.code.tls.certresolver=myresolver"
+      - "traefik.http.routers.code.rule=Host(`code.${DSUITE_FULL_DOMAIN}`)"
+        # Since gitea exposes the port 22 on the host, we need to specify the web port ourselves
+        # otherwise traefik doesn't select the right one
+      - "traefik.http.services.code.loadbalancer.server.port=3000"
 
   registry:
     image: registry:2
@@ -34,6 +62,12 @@ services:
     networks:
       - front
     restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dsuite_front"
+      - "traefik.http.routers.registry.entrypoints=websecure"
+      - "traefik.http.routers.registry.tls.certresolver=myresolver"
+      - "traefik.http.routers.registry.rule=Host(`registry.${DSUITE_FULL_DOMAIN}`)"
 
   drone:
     image: drone/drone:2
@@ -52,6 +86,13 @@ services:
       - front
       - drone
     restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dsuite_front"
+      - "traefik.http.routers.drone.entrypoints=websecure"
+      - "traefik.http.routers.drone.tls.certresolver=myresolver"
+      - "traefik.http.routers.drone.rule=Host(`ci.${DSUITE_FULL_DOMAIN}`)"
+      - "traefik.http.services.drone.loadbalancer.server.port=80"
 
   drone-runner:
     image: drone/drone-runner-docker:1
@@ -94,6 +135,12 @@ services:
       - front
       - ldap
     restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dsuite_front"
+      - "traefik.http.routers.ldapadmin.entrypoints=websecure"
+      - "traefik.http.routers.ldapadmin.tls.certresolver=myresolver"
+      - "traefik.http.routers.ldapadmin.rule=Host(`ldapadmin.${DSUITE_FULL_DOMAIN}`)"
 
   ldapweb:
     image: dolanor/ldapweb:latest
@@ -106,6 +153,12 @@ services:
     networks:
       - front
       - ldap
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dsuite_front"
+      - "traefik.http.routers.ldapweb.entrypoints=websecure"
+      - "traefik.http.routers.ldapweb.tls.certresolver=myresolver"
+      - "traefik.http.routers.ldapweb.rule=Host(`id.${DSUITE_FULL_DOMAIN}`)"
 
   nextcloud:
     image: nextcloud:26-apache
@@ -126,6 +179,12 @@ services:
       - nextcloud
       - ldap
     restart: always
+    labels:
+      - "traefik.docker.network=dsuite_front"
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextcloud.entrypoints=websecure"
+      - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
+      - "traefik.http.routers.nextcloud.rule=Host(`cloud.${DSUITE_FULL_DOMAIN}`)"
 
   nextcloud-db:
     image: mariadb
@@ -140,15 +199,6 @@ services:
       - nextcloud
     restart: always
 
-  perkeep:
-    image: perkeep:v0.11-git2
-    command: perkeepd
-    volumes:
-      - "perkeep-store:/home/keepy/var"
-      - "perkeep-config:/home/keepy/.config/perkeep"
-    networks:
-      - front
-    restart: always
 
 
   mail:
@@ -256,12 +306,18 @@ services:
     expose:
       - "3000"
     networks:
-      - monitoring
       - front
+      - monitoring
     restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dsuite_front"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.${DSUITE_FULL_DOMAIN}`)"
 
   bivac:
-    image: camptocamp/bivac:2.3
+    image: dolanor/bivac:2.5.1-restic-0.14
     command: manager
     expose:
       - "8182"

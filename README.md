@@ -5,7 +5,7 @@ Like your GSuite :envelope: :calendar: :file_folder: + :octocat: + CI, but on Do
 This contains work from these projects:
 
 * [tomav/docker-mailserver](https://github.com/tomav/docker-mailserver)
-* [mholt/caddy](https://github.com/mholt/caddy)
+* [traefik/traefik](https://github.com/traefik/traefik)
 * [osixia/docker-openldap](https://github.com/osixia/docker-openldap)
 * [osixia/docker-phpLDAPadmin](https://github.com/osixia/docker-phpLDAPadmin)
 * [docker/distribution](https://github.com/docker/distribution/)
@@ -18,16 +18,16 @@ This contains work from these projects:
 ```bash
 git clone https://github.com/dolanor/dsuite
 cd dsuite
-# edit obvious placeholders (mydomain.com, dc=mydomain,dc=com, XXXPassword, etc…)
-vim docker-compose.yml
+cp .env.sample .env
+# edit vars in .env: DSUITE_TLD, DSUITE_DOMAIN, passwords
 # launch the services
-docker-compose up -d
+docker compose up -d
 # sip a fine beverage in a nice chair
 ```
 
 # Configuration
 
-Obviously, you need to configure the docker-compose.yml to suit your needs. I might automate even more when I have time.
+Obviously, you need to configure the docker-compose.yml to suit your needs. Especially the LDAP part.
 
 You also need to have a good DNS configuration, mostly for the mail part (spf, dkim, dmarc) and all the subdomains
 
